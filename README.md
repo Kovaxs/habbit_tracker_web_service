@@ -4,7 +4,16 @@ A web app project for personal habit tracking. The app is based on the workflow 
 
 ## Project status
 
-The project foundation is implemented. It includes a Next.js starter page, feature-module folders, SQLite connection setup, and development checks. Habit tracking, charts, workbook import, and authentication are not implemented yet.
+The core app is implemented and covered by automated tests:
+
+- Habits with occurrence-count or completion goals, daily or hourly tracking, and increase or decrease directions.
+- Today view with daily entry, an hourly grid, review status, and weekly notes.
+- Progress view with charts, recording coverage, and a daily values table.
+- Manage view with edit, archive, restore, JSON export, and workbook import.
+- Workbook import with a preview step. Blank cells stay unrecorded and existing data is never overwritten.
+- A responsive mobile-first interface tested on small screens.
+
+Authentication and deployment are not implemented. JSON restore is not available.
 
 ## Local setup
 
@@ -35,7 +44,9 @@ Open <http://127.0.0.1:3000>. The server binds to localhost. Do not expose it to
 | `npm run db:generate` | Generate migrations after tables are defined |
 | `npm run db:migrate` | Apply generated migrations |
 
-The database schema is empty. Do not run migration commands until the data model and first migration exist. Database commands load development environment files by default, like `next dev`. Set `NODE_ENV=production` when running them against a deployed database. A `DATABASE_PATH` set directly in the process environment takes priority.
+The database schema is defined in `src/server/db/schema.ts`. Migrations in `drizzle/` are applied automatically when the database opens. Run `npm run db:generate` only after you change the schema, then review the generated SQL before you commit it. Database commands load development environment files by default, like `next dev`. Set `NODE_ENV=production` when running them against a deployed database. A `DATABASE_PATH` set directly in the process environment takes priority.
+
+Server actions accept request bodies up to 3 MB. This leaves room for multipart overhead above the 2 MB workbook limit.
 
 ### Dependency audit
 
@@ -63,7 +74,7 @@ tests/unit/             # Unit and database-adapter tests
 docs/                   # Architecture notes
 ```
 
-Feature folders currently contain scope documentation, not working features. See `docs/architecture.md` for module boundaries.
+Feature folders contain working features. See `docs/architecture.md` for module boundaries.
 
 ## Goals
 
@@ -88,17 +99,16 @@ The workbook tracks a purpose, such as “No ver reels,” in weekly sheets. Eac
 
 A value of `0` means that the hour was reviewed and had no occurrences. An empty cell means that the hour was not reviewed or was outside waking hours. Empty cells must not become zeroes during import or analysis.
 
-## Planned features
+## Implemented features
 
-- Add and edit habits.
-- Support occurrence-count habits and completion habits.
-- Set whether progress means an increase or a decrease in a behavior.
-- Provide daily entry and a weekly overview.
-- Show progress history and plots with recording coverage.
-- Support reflection notes.
-- Import existing records from the workbook.
+- Add, edit, archive, and restore habits.
+- Occurrence-count habits and completion habits.
+- Increase or decrease goals, with a daily or hourly record grid.
+- Daily entry, a weekly overview, and progress plots with recording coverage.
+- Reflection notes per week.
+- Workbook import with preview and idempotent reimport.
 
-These features are planned, not available. Details of habit targets, authentication, and import behavior remain to be defined.
+Not implemented yet: authentication, JSON restore, and deployment automation.
 
 ## Technology stack
 
@@ -110,7 +120,7 @@ These features are planned, not available. Details of habit targets, authenticat
 | Database tooling | Drizzle ORM                | Typed queries and schema migrations                    |
 | Charts           | Recharts                   | Habit progress plots                                   |
 
-The core dependencies are installed. Recharts is installed for future plots. The shadcn/ui configuration and class utility are ready, but UI components and a full design theme have not been added.
+The core dependencies are installed and used. Recharts draws the progress plots. Shared UI components use Tailwind CSS with Radix primitives.
 
 Use server-side access for the database. Keep configuration in environment variables. Keep persistent data separate from application code.
 

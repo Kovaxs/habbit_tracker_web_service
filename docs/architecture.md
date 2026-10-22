@@ -25,11 +25,17 @@ Each feature can add these files or directories as it grows:
 
 Mark server modules with `import "server-only"`. Use `"use server"` for server-action entry points. Never import a repository into a client component. Keep shared domain rules independent of React and database APIs. Avoid cross-feature imports of internal files.
 
-## Data model: next step
+## Data model
 
-The schema is not defined yet. Before implementation, define habit types, goal direction, daily versus hourly record keys, local date/time handling, and the meaning of completed reviews. Keep missing values distinct from zero. Do not mix daily and hourly records in totals without an explicit rule.
+The schema is defined in `src/server/db/schema.ts` and applied by one reviewed migration in `drizzle/`:
 
-Progress plots must show recording coverage. An unrecorded period is not a successful period. Define week and review-time boundaries in tests before workbook import.
+- `habits`: name (unique), kind (`count` or `completion`), tracking (`daily` or `hourly`), direction (`increase` or `decrease`), target, unit, start date, tracked hour range, review hour, archive flag, and creation time. Completion habits must have a target of 1 with an increase goal. Database checks keep these rules true for all rows.
+- `entries`: one row per recorded period, keyed by habit, date, and slot. A daily habit uses slot `-1`. An hourly habit uses the hour from 0 to 23. A value of `0` means "reviewed, with no occurrences". A missing row means "not reviewed". Blank cells never become zeroes.
+- `notes`: one row per date, with weekly helped and difficult text.
+
+Dates are `YYYY-MM-DD` strings in the workbook's local time. Hours are whole numbers. All writes go through one synchronous SQLite transaction per server action.
+
+Imported habits must use hourly decrease counts with a full-day grid (00:00–24:00), because that is what the source workbook records. Progress plots must show recording coverage: an unrecorded period is not a successful period.
 
 ## Runtime
 
