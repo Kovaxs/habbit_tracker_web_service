@@ -1,10 +1,69 @@
 # Habit Tracker
 
-A planned web app for personal habit tracking. The app is based on the workflow in `Examen_particular_2026_reels.xlsx`.
+A web app project for personal habit tracking. The app is based on the workflow in `Examen_particular_2026_reels.xlsx`.
 
 ## Project status
 
-This repository contains the source workbook and project documentation. The app is not implemented. There are no build, test, or run commands yet.
+The project foundation is implemented. It includes a Next.js starter page, feature-module folders, SQLite connection setup, and development checks. Habit tracking, charts, workbook import, and authentication are not implemented yet.
+
+## Local setup
+
+Use Node.js 24 LTS (see `.nvmrc`) and npm. Node.js 26 is also supported. Clean installs, checks, and production builds passed on Node.js 24 and 26. SQLite uses a native dependency. If a prebuilt binary is not available for your system, installation requires Python and C/C++ build tools.
+
+```sh
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+Open <http://127.0.0.1:3000>. The server binds to localhost. Do not expose it to an untrusted network. Access controls are not implemented.
+
+`DATABASE_PATH` sets the SQLite file location. The default is `./data/habit-tracker.sqlite`. Relative paths resolve from the project root. The starter page does not open the database. Database files and local environment files are ignored by version control.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the local development server |
+| `npm run build` | Build the app for production |
+| `npm start` | Run the built app on localhost |
+| `npm run lint` | Check code with ESLint |
+| `npm run typecheck` | Generate route types and check TypeScript |
+| `npm test` | Run unit and database-adapter tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run check` | Run lint, type checks, and tests |
+| `npm run db:generate` | Generate migrations after tables are defined |
+| `npm run db:migrate` | Apply generated migrations |
+
+The database schema is empty. Do not run migration commands until the data model and first migration exist. Database commands load development environment files by default, like `next dev`. Set `NODE_ENV=production` when running them against a deployed database. A `DATABASE_PATH` set directly in the process environment takes priority.
+
+### Dependency audit
+
+ESLint is pinned to version 9 for compatibility with the plugins in `eslint-config-next`. npm marks this version as unsupported. Update the lint toolchain when its plugins support ESLint 10.
+
+At setup, `npm audit --omit=dev` reports no vulnerabilities. The full audit reports nine findings in development dependencies: five high-severity findings in the Next.js lint dependency chain (`braces`), and four moderate findings in the Drizzle Kit dependency chain (`esbuild`). The proposed automatic fixes require breaking changes. Do not run `npm audit fix --force` without a compatibility review. Check upstream fixes before deployment.
+
+## Project structure
+
+```text
+src/
+  app/                  # Routes, layout, and starter page
+  components/ui/        # Shared UI components (reserved)
+  features/
+    habits/             # Habit definitions and goals
+    tracking/           # Daily and hourly records
+    progress/           # Statistics and plots
+    reflections/        # Reflection notes
+    imports/            # Workbook import
+  hooks/                # Shared client hooks (reserved)
+  lib/                  # Utilities and server/CLI configuration
+  server/db/            # SQLite connection and Drizzle schema
+drizzle/                # Generated migrations (reserved)
+tests/unit/             # Unit and database-adapter tests
+docs/                   # Architecture notes
+```
+
+Feature folders currently contain scope documentation, not working features. See `docs/architecture.md` for module boundaries.
 
 ## Goals
 
@@ -41,15 +100,17 @@ A value of `0` means that the hour was reviewed and had no occurrences. An empty
 
 These features are planned, not available. Details of habit targets, authentication, and import behavior remain to be defined.
 
-## Proposed technology stack
+## Technology stack
 
-| Area | Technology | Purpose |
-| --- | --- | --- |
-| Application | Next.js and TypeScript | One app for the interface and server logic |
-| Interface | Tailwind CSS and shadcn/ui | Responsive pages and reusable components |
-| Database | SQLite | Persistent storage without a separate database service |
-| Database tooling | Drizzle ORM | Typed queries and schema migrations |
-| Charts | Recharts | Habit progress plots |
+| Area             | Technology                 | Purpose                                                |
+| ---------------- | -------------------------- | ------------------------------------------------------ |
+| Application      | Next.js and TypeScript     | One app for the interface and server logic             |
+| Interface        | Tailwind CSS and shadcn/ui | Responsive pages and reusable components               |
+| Database         | SQLite                     | Persistent storage without a separate database service |
+| Database tooling | Drizzle ORM                | Typed queries and schema migrations                    |
+| Charts           | Recharts                   | Habit progress plots                                   |
+
+The core dependencies are installed. Recharts is installed for future plots. The shadcn/ui configuration and class utility are ready, but UI components and a full design theme have not been added.
 
 Use server-side access for the database. Keep configuration in environment variables. Keep persistent data separate from application code.
 
