@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/": {
+      "targetKind": "new-ui",
+      "projectId": "bd87bc8d-f938-4414-b4eb-6132c21eca38",
+      "activeDraftId": "4978d0ff-d649-4df5-a0d3-c699d71e0a8c",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        "src/app/globals.css",
+        "src/app/layout.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "df8c141d380c06760d990b163d241de920be42a390ab59ecac9753af8c7b81a1",
+        "src/app/globals.css": "8f01a4735a7356bb470e921fceb9ac2a71a262579db68342f1bff76213ee4f02",
+        "src/app/layout.tsx": "cc5b9947546cc0fc3aea5e12d54ba1a3222a160ca8107a00c25cbe36d4782417"
+      },
+      "components": [],
+      "drafts": {
+        "4978d0ff-d649-4df5-a0d3-c699d71e0a8c": {
+          "title": "Habit Tracker Dashboard",
+          "visualDirection": "Calm forest and warm white, mobile-first 375x812",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-10-22T18:05:19.256Z"
+    }
+  }
+}
