@@ -6,5 +6,6 @@ export function getDatabasePath(env: Record<string, string | undefined> = proces
   if (!value.trim()) {
     throw new Error("DATABASE_PATH must not be empty.");
   }
-  return resolve(value);
+  // This is user-configured runtime storage, not a build-time asset to bundle.
+  return resolve(/* turbopackIgnore: true */ value);
 }

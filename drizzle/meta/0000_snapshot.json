@@ -1,0 +1,259 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "2ec21cfa-6c97-4c60-9202-f5de4fa3fbe1",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "entries": {
+      "name": "entries",
+      "columns": {
+        "habit_id": {
+          "name": "habit_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slot": {
+          "name": "slot",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entries_habit_id_habits_id_fk": {
+          "name": "entries_habit_id_habits_id_fk",
+          "tableFrom": "entries",
+          "tableTo": "habits",
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "entries_habit_id_date_slot_pk": {
+          "columns": [
+            "habit_id",
+            "date",
+            "slot"
+          ],
+          "name": "entries_habit_id_date_slot_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "entry_value": {
+          "name": "entry_value",
+          "value": "\"entries\".\"value\" between 0 and 1000000 and typeof(\"entries\".\"value\") = 'integer'"
+        },
+        "entry_slot": {
+          "name": "entry_slot",
+          "value": "\"entries\".\"slot\" between -1 and 23 and typeof(\"entries\".\"slot\") = 'integer'"
+        }
+      }
+    },
+    "habits": {
+      "name": "habits",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tracking": {
+          "name": "tracking",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "direction": {
+          "name": "direction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target": {
+          "name": "target",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unit": {
+          "name": "unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_hour": {
+          "name": "start_hour",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "end_hour": {
+          "name": "end_hour",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "review_hour": {
+          "name": "review_hour",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "archived": {
+          "name": "archived",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "habits_name_unique": {
+          "name": "habits_name_unique",
+          "columns": [
+            "name"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "habit_kind": {
+          "name": "habit_kind",
+          "value": "\"habits\".\"kind\" in ('count', 'completion')"
+        },
+        "habit_tracking": {
+          "name": "habit_tracking",
+          "value": "\"habits\".\"tracking\" in ('daily', 'hourly')"
+        },
+        "habit_direction": {
+          "name": "habit_direction",
+          "value": "\"habits\".\"direction\" in ('increase', 'decrease')"
+        },
+        "habit_target": {
+          "name": "habit_target",
+          "value": "\"habits\".\"target\" between 0 and 1000000 and typeof(\"habits\".\"target\") = 'integer'"
+        },
+        "habit_completion": {
+          "name": "habit_completion",
+          "value": "\"habits\".\"kind\" != 'completion' or (\"habits\".\"target\" = 1 and \"habits\".\"direction\" = 'increase')"
+        },
+        "habit_hours": {
+          "name": "habit_hours",
+          "value": "\"habits\".\"start_hour\" between 0 and 23 and \"habits\".\"end_hour\" between 1 and 24 and \"habits\".\"start_hour\" < \"habits\".\"end_hour\" and \"habits\".\"review_hour\" between 0 and 24"
+        }
+      }
+    },
+    "notes": {
+      "name": "notes",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "helped": {
+          "name": "helped",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "difficult": {
+          "name": "difficult",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "note_length": {
+          "name": "note_length",
+          "value": "length(\"notes\".\"helped\") <= 4000 and length(\"notes\".\"difficult\") <= 4000"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
