@@ -31,18 +31,18 @@ Open <http://127.0.0.1:3000>. The server binds to localhost. Do not expose it to
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the local development server |
-| `npm run build` | Build the app for production |
-| `npm start` | Run the built app on localhost |
-| `npm run lint` | Check code with ESLint |
-| `npm run typecheck` | Generate route types and check TypeScript |
-| `npm test` | Run unit and database-adapter tests |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run check` | Run lint, type checks, and tests |
+| Command               | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `npm run dev`         | Start the local development server           |
+| `npm run build`       | Build the app for production                 |
+| `npm start`           | Run the built app on localhost               |
+| `npm run lint`        | Check code with ESLint                       |
+| `npm run typecheck`   | Generate route types and check TypeScript    |
+| `npm test`            | Run unit and database-adapter tests          |
+| `npm run test:watch`  | Run tests in watch mode                      |
+| `npm run check`       | Run lint, type checks, and tests             |
 | `npm run db:generate` | Generate migrations after tables are defined |
-| `npm run db:migrate` | Apply generated migrations |
+| `npm run db:migrate`  | Apply generated migrations                   |
 
 The database schema is defined in `src/server/db/schema.ts`. Migrations in `drizzle/` are applied automatically when the database opens. Run `npm run db:generate` only after you change the schema, then review the generated SQL before you commit it. Database commands load development environment files by default, like `next dev`. Set `NODE_ENV=production` when running them against a deployed database. A `DATABASE_PATH` set directly in the process environment takes priority.
 
