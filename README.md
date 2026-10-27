@@ -13,7 +13,7 @@ The core app is implemented and covered by automated tests:
 - Workbook import with a preview step. Blank cells stay unrecorded and existing data is never overwritten.
 - A responsive mobile-first interface tested on small screens.
 
-Authentication is not implemented. JSON restore is not available. Container deployment is available.
+Authentication is not implemented. JSON restore is not available. Container deployment and Ansible deployment to a Docker VM are available.
 
 ## Local setup
 
@@ -108,7 +108,7 @@ A value of `0` means that the hour was reviewed and had no occurrences. An empty
 - Reflection notes per week.
 - Workbook import with preview and idempotent reimport.
 
-Not implemented yet: authentication, JSON restore, and deployment automation.
+Not implemented yet: authentication and JSON restore.
 
 ## Technology stack
 
@@ -162,11 +162,27 @@ Database files stay outside application code and outside the image. Do not publi
 - No health-check endpoint exists yet. Add one before use with orchestration probes.
 - Authentication is not implemented. Do not expose the service to an untrusted network.
 
+### Deploy to the Docker VM with Ansible
+
+The `ansible/` directory copies the current local application files to `/opt/habit-tracker` on the Docker VM. It builds and starts the existing Compose service without copying local databases or environment files. SQLite remains in the Docker named volume.
+
+```sh
+cd ansible
+cp inventory.ini.example inventory.ini
+# Edit inventory.ini with the VM IP and SSH user.
+ansible-playbook deploy.yml --syntax-check
+ansible-playbook deploy.yml
+```
+
+The service remains on the VM loopback address. See `ansible/README.md` for configuration, SSH tunnel access, and redeployment commands.
+
 ## Deployment plan
 
-Deployment targets a Proxmox homelab. Docker deployment is now supported; direct Node.js deployment still works with `npm run build` and `npm start`.
+Deployment targets a Proxmox homelab. Docker and Ansible VM deployment are supported; direct Node.js deployment still works with `npm run build` and `npm start`.
 
-Use persistent local-disk storage for SQLite. Define backups, restore procedures, access controls, and remote access before deployment.
+A separate infrastructure project provisions the Proxmox VM and installs Docker. This repository's `ansible/` directory deploys only the application.
+
+Use persistent local-disk storage for SQLite. Define backups, restore procedures, access controls, and remote access before exposing the service beyond SSH tunnel access.
 
 ## Development guidance
 

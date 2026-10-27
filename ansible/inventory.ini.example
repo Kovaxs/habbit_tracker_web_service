@@ -1,0 +1,5 @@
+[docker]
+docker ansible_host=192.168.5.50 ansible_user=kovaxs
+
+# Add this only if SSH cannot find the private key automatically:
+ansible_private_key_file=/absolute/path/to/id_ed25519
