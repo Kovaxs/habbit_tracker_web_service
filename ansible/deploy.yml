@@ -79,7 +79,7 @@
 
     - name: Wait for the application to respond
       ansible.builtin.uri:
-        url: http://127.0.0.1:3000/
+        url: http://192.168.5.214:3000/
         status_code: 200
         return_content: false
         timeout: 10

@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     ports:
       # Host loopback only. Put a reverse proxy in front for remote access.
-      - "127.0.0.1:3000:3000"
+      - "192.168.5.214:3000:3000"
     environment:
       DATABASE_PATH: /data/habit-tracker.sqlite
       TZ: ${TZ:-UTC}
