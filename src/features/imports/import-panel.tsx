@@ -6,10 +6,12 @@ import { importWorkbook, previewWorkbook } from "@/server/actions";
 import type { ImportPreview, ImportSummary, Snapshot } from "@/lib/types";
 
 export function ImportPanel({
+  profileId,
   busy,
   onBusyChange,
   onImported,
 }: {
+  profileId: string;
   busy: boolean;
   onBusyChange: (busy: boolean) => void;
   onImported: (snapshot: Snapshot, summary: ImportSummary) => void;
@@ -30,7 +32,7 @@ export function ImportPanel({
     data.set("file", file);
     try {
       if (importNow) {
-        const result = await importWorkbook(data);
+        const result = await importWorkbook(data, profileId);
         if (!result.ok) {
           setError(result.error);
           return;
@@ -42,7 +44,7 @@ export function ImportPanel({
         );
         setPreview(null);
       } else {
-        const result = await previewWorkbook(data);
+        const result = await previewWorkbook(data, profileId);
         if (result.ok) setPreview(result.data);
         else setError(result.error);
       }

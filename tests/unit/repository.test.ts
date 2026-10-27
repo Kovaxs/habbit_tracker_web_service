@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { HabitInput } from "@/lib/types";
 import type { ParsedWorkbook } from "@/features/imports/workbook";
 import { openDatabase } from "@/server/db/connection";
+import { createProfile, DEFAULT_PROFILE_ID } from "@/server/profiles";
 import { createRepository } from "@/server/repository";
 
 const input: HabitInput = { name: "Synthetic habit", kind: "count", tracking: "hourly", direction: "decrease", target: 0, unit: "times", startDate: "2024-12-30", startHour: 0, endHour: 24, reviewHour: 14 };
@@ -13,7 +14,7 @@ function workbook(): ParsedWorkbook {
 }
 let connection: ReturnType<typeof openDatabase>;
 let repository: ReturnType<typeof createRepository>;
-beforeEach(() => { connection = openDatabase(":memory:"); repository = createRepository(connection.db); });
+beforeEach(() => { connection = openDatabase(":memory:"); repository = createRepository(connection.db, DEFAULT_PROFILE_ID); });
 afterEach(() => connection.sqlite.close());
 
 describe("repository", () => {
@@ -39,7 +40,7 @@ describe("repository", () => {
   });
   it("upserts and clears notes; validates dates and lengths", () => {
     const note = { date: "2024-12-30", helped: "Synthetic help", difficult: "Synthetic obstacle" };
-    expect(repository.saveNote(note).notes).toEqual([note]);
+    expect(repository.saveNote(note).notes).toEqual([{ ...note, profileId: DEFAULT_PROFILE_ID }]);
     expect(repository.saveNote({ ...note, helped: "Changed" }).notes).toHaveLength(1);
     expect(repository.saveNote({ ...note, helped: "", difficult: "" }).notes).toEqual([]);
     expect(() => repository.saveNote({ ...note, difficult: "a".repeat(4001) })).toThrow();
@@ -96,15 +97,35 @@ describe("repository", () => {
     unknown.entries[0].habitName = "Unknown";
     expect(() => repository.importWorkbook(unknown)).toThrow("unknown habit");
   });
+  it("isolates habits, entries, notes and imports by profile", () => {
+    const personalHabit = repository.createHabit(input).habits[0];
+    repository.saveEntry({ habitId: personalHabit.id, date: "2024-12-30", slot: 0, value: 7 });
+    repository.saveNote({ date: "2024-12-30", helped: "Personal note", difficult: "" });
+    const other = createProfile(connection.db, "Other");
+    const otherRepository = createRepository(connection.db, other.id);
+    const imported = otherRepository.importWorkbook(workbook()).snapshot;
+
+    expect(imported.habits[0].name).toBe(input.name);
+    expect(imported.habits[0].id).not.toBe(personalHabit.id);
+    expect(imported.entries.map(entry => entry.value)).toEqual([0, 4]);
+    expect(imported.notes[0]).toMatchObject({ profileId: other.id, helped: "Synthetic note" });
+    const personal = repository.getSnapshot();
+    expect(personal.habits).toHaveLength(1);
+    expect(personal.entries.map(entry => entry.value)).toEqual([7]);
+    expect(personal.notes[0]).toMatchObject({ profileId: DEFAULT_PROFILE_ID, helped: "Personal note" });
+    expect(otherRepository.getSnapshot().entries.some(entry => entry.habitId === personalHabit.id)).toBe(false);
+    expect(() => repository.saveEntry({ habitId: imported.habits[0].id, date: "2024-12-30", slot: 0, value: 1 })).toThrow("Habit was not found");
+    expect(() => repository.updateHabit(imported.habits[0].id, input)).toThrow("Habit was not found");
+  });
   it("persists across reopen and applies migrations idempotently", () => {
     const directory = mkdtempSync(join(tmpdir(), "habit-repository-"));
     try {
       const path = join(directory, "test.sqlite");
       const first = openDatabase(path);
       let expected;
-      try { expected = createRepository(first.db).importWorkbook(workbook()).snapshot; } finally { first.sqlite.close(); }
+      try { expected = createRepository(first.db, DEFAULT_PROFILE_ID).importWorkbook(workbook()).snapshot; } finally { first.sqlite.close(); }
       const reopened = openDatabase(path);
-      try { expect(createRepository(reopened.db).getSnapshot()).toEqual(expected); } finally { reopened.sqlite.close(); }
+      try { expect(createRepository(reopened.db, DEFAULT_PROFILE_ID).getSnapshot()).toEqual(expected); } finally { reopened.sqlite.close(); }
     } finally { rmSync(directory, { recursive: true, force: true }); }
   });
 });

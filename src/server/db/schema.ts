@@ -1,8 +1,17 @@
 import { sql } from "drizzle-orm";
 import { check, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+export const profiles = sqliteTable("profiles", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: text("created_at").notNull(),
+}, table => [
+  uniqueIndex("profiles_name_unique").on(table.name),
+]);
+
 export const habits = sqliteTable("habits", {
   id: text("id").primaryKey(),
+  profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   kind: text("kind", { enum: ["count", "completion"] }).notNull(),
   tracking: text("tracking", { enum: ["daily", "hourly"] }).notNull(),
@@ -16,7 +25,7 @@ export const habits = sqliteTable("habits", {
   archived: integer("archived", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull(),
 }, table => [
-  uniqueIndex("habits_name_unique").on(table.name),
+  uniqueIndex("habits_profile_name_unique").on(table.profileId, table.name),
   check("habit_kind", sql`${table.kind} in ('count', 'completion')`),
   check("habit_tracking", sql`${table.tracking} in ('daily', 'hourly')`),
   check("habit_direction", sql`${table.direction} in ('increase', 'decrease')`),
@@ -37,9 +46,11 @@ export const entries = sqliteTable("entries", {
 ]);
 
 export const notes = sqliteTable("notes", {
-  date: text("date").primaryKey(),
+  profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  date: text("date").notNull(),
   helped: text("helped").notNull(),
   difficult: text("difficult").notNull(),
 }, table => [
+  primaryKey({ columns: [table.profileId, table.date] }),
   check("note_length", sql`length(${table.helped}) <= 4000 and length(${table.difficult}) <= 4000`),
 ]);

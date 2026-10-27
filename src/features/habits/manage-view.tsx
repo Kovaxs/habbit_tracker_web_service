@@ -7,6 +7,7 @@ import { localDate } from "@/lib/dates";
 import type { Habit, ImportSummary, Snapshot } from "@/lib/types";
 
 export function ManageView({
+  profileId,
   snapshot,
   busy,
   onBusyChange,
@@ -15,6 +16,7 @@ export function ManageView({
   onArchive,
   onImported,
 }: {
+  profileId: string;
   snapshot: Snapshot;
   busy: boolean;
   onBusyChange: (busy: boolean) => void;
@@ -113,6 +115,7 @@ export function ManageView({
       </section>
       <div className="manage-grid">
         <ImportPanel
+          profileId={profileId}
           busy={busy}
           onBusyChange={onBusyChange}
           onImported={onImported}

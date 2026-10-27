@@ -6,6 +6,7 @@ A web app project for personal habit tracking. The app is based on the workflow 
 
 The core app is implemented and covered by automated tests:
 
+- Password-free profiles with separate habits, records, notes, imports, and exports.
 - Habits with occurrence-count or completion goals, daily or hourly tracking, and increase or decrease directions.
 - Today view with daily entry, an hourly grid, review status, and weekly notes.
 - Progress view with charts, recording coverage, and a daily values table.
@@ -28,6 +29,12 @@ npm run dev
 Open <http://127.0.0.1:3000>. The server binds to localhost. Do not expose it to an untrusted network. Access controls are not implemented.
 
 `DATABASE_PATH` sets the SQLite file location. The default is `./data/habit-tracker.sqlite`. Relative paths resolve from the project root. The starter page does not open the database. Database files and local environment files are ignored by version control.
+
+### Profiles
+
+Use the profile selector in the header to switch profiles or add a profile. Each profile has its own habits, records, notes, workbook imports, and JSON exports. Existing data is assigned to the initial `Personal` profile during migration. The selected profile is remembered in the current browser.
+
+Profiles do not require passwords. They are workspace separators, not private accounts or access controls. Anyone who can use the app can select any profile. Do not expose the service to an untrusted network.
 
 ## Commands
 
@@ -61,6 +68,7 @@ src/
   app/                  # Routes, layout, and starter page
   components/ui/        # Shared UI components (reserved)
   features/
+    profiles/           # Password-free profile selection and creation
     habits/             # Habit definitions and goals
     tracking/           # Daily and hourly records
     progress/           # Statistics and plots
@@ -101,6 +109,7 @@ A value of `0` means that the hour was reviewed and had no occurrences. An empty
 
 ## Implemented features
 
+- Add and switch password-free profiles with separated data.
 - Add, edit, archive, and restore habits.
 - Occurrence-count habits and completion habits.
 - Increase or decrease goals, with a daily or hourly record grid.

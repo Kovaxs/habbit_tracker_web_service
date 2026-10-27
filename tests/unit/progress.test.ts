@@ -3,7 +3,7 @@ import { addDays, dateRange, localDate, weekStart } from "@/lib/dates";
 import { dailyProgress, progressSummary } from "@/features/progress/calculations";
 import type { Entry, Habit } from "@/lib/types";
 
-const habit: Habit = { id: "test", name: "Test", kind: "count", tracking: "hourly", direction: "decrease", target: 0, unit: "times", startDate: "2026-01-01", startHour: 13, endHour: 15, reviewHour: 14, archived: false, createdAt: "2026-01-01" };
+const habit: Habit = { id: "test", profileId: "default", name: "Test", kind: "count", tracking: "hourly", direction: "decrease", target: 0, unit: "times", startDate: "2026-01-01", startHour: 13, endHour: 15, reviewHour: 14, archived: false, createdAt: "2026-01-01" };
 const entry = (slot: number, value: number, date = "2026-01-05"): Entry => ({ habitId: habit.id, date, slot, value });
 
 describe("calendar dates", () => {

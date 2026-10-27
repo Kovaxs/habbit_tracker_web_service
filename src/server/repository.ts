@@ -12,23 +12,23 @@ function compatible(existing: Habit): boolean {
   return existing.kind === "count" && existing.tracking === "hourly" && existing.direction === "decrease" && existing.startHour === 0 && existing.endHour === 24;
 }
 
-export function createRepository(db: Database) {
+export function createRepository(db: Database, profileId: string) {
   function getSnapshot(): Snapshot {
     return {
-      habits: db.select().from(habits).orderBy(asc(habits.createdAt), asc(habits.id)).all(),
-      entries: db.select().from(entries).orderBy(asc(entries.date), asc(entries.habitId), asc(entries.slot)).all(),
-      notes: db.select().from(notes).orderBy(asc(notes.date)).all(),
+      habits: db.select().from(habits).where(eq(habits.profileId, profileId)).orderBy(asc(habits.createdAt), asc(habits.id)).all(),
+      entries: db.select({ habitId: entries.habitId, date: entries.date, slot: entries.slot, value: entries.value }).from(entries).innerJoin(habits, eq(entries.habitId, habits.id)).where(eq(habits.profileId, profileId)).orderBy(asc(entries.date), asc(entries.habitId), asc(entries.slot)).all(),
+      notes: db.select().from(notes).where(eq(notes.profileId, profileId)).orderBy(asc(notes.date)).all(),
     };
   }
 
   function findHabit(id: unknown): Habit {
-    const habit = db.select().from(habits).where(eq(habits.id, validId(id))).get();
+    const habit = db.select().from(habits).where(and(eq(habits.id, validId(id)), eq(habits.profileId, profileId))).get();
     if (!habit) throw new ValidationError("Habit was not found.");
     return habit;
   }
 
   function ensureUniqueName(name: string, exceptId?: string) {
-    const existing = db.select().from(habits).where(eq(habits.name, name)).get();
+    const existing = db.select().from(habits).where(and(eq(habits.profileId, profileId), eq(habits.name, name))).get();
     if (existing && existing.id !== exceptId) throw new ValidationError("A habit with this name already exists. Use a different name.");
   }
 
@@ -38,7 +38,7 @@ export function createRepository(db: Database) {
       const value = validateHabit(input);
       return db.transaction(tx => {
         ensureUniqueName(value.name);
-        tx.insert(habits).values({ ...value, id: randomUUID(), archived: false, createdAt: new Date().toISOString() }).run();
+        tx.insert(habits).values({ ...value, id: randomUUID(), profileId, archived: false, createdAt: new Date().toISOString() }).run();
         return getSnapshot();
       });
     },
@@ -71,8 +71,8 @@ export function createRepository(db: Database) {
     },
     saveNote(input: unknown): Snapshot {
       const note = validateNote(input);
-      if (!note.helped && !note.difficult) db.delete(notes).where(eq(notes.date, note.date)).run();
-      else db.insert(notes).values(note).onConflictDoUpdate({ target: notes.date, set: note }).run();
+      if (!note.helped && !note.difficult) db.delete(notes).where(and(eq(notes.profileId, profileId), eq(notes.date, note.date))).run();
+      else db.insert(notes).values({ ...note, profileId }).onConflictDoUpdate({ target: [notes.profileId, notes.date], set: note }).run();
       return getSnapshot();
     },
     previewWorkbook(workbook: ParsedWorkbook): ImportPreview {
@@ -112,7 +112,7 @@ export function createRepository(db: Database) {
           const input = validateHabit(raw);
           if (input.kind !== "count" || input.tracking !== "hourly" || input.direction !== "decrease" || input.startHour !== 0 || input.endHour !== 24) throw new ValidationError("Imported habits must use hourly decrease counts with a full-day grid.");
           if (byName.has(input.name)) throw new ValidationError("Duplicate habit definitions in workbook.");
-          let habit = tx.select().from(habits).where(eq(habits.name, input.name)).get();
+          let habit = tx.select().from(habits).where(and(eq(habits.profileId, profileId), eq(habits.name, input.name))).get();
           if (habit) {
             if (!compatible(habit)) throw new ValidationError("A matching habit has incompatible settings. Use another name or restore hourly decrease-count tracking with hours 00:00–24:00.");
             if (input.startDate < habit.startDate) {
@@ -120,7 +120,7 @@ export function createRepository(db: Database) {
               habit = { ...habit, startDate: input.startDate };
             }
           } else {
-            habit = { ...input, id: randomUUID(), archived: false, createdAt: new Date().toISOString() };
+            habit = { ...input, id: randomUUID(), profileId, archived: false, createdAt: new Date().toISOString() };
             tx.insert(habits).values(habit).run();
             summary.habitsAdded++;
           }
@@ -146,7 +146,7 @@ export function createRepository(db: Database) {
           if (seenNotes.has(note.date) && seenNotes.get(note.date) !== serialized) throw new ValidationError("Duplicate workbook notes have different text.");
           seenNotes.set(note.date, serialized);
           if (!note.helped && !note.difficult) continue;
-          summary.notesAdded += tx.insert(notes).values(note).onConflictDoNothing().run().changes;
+          summary.notesAdded += tx.insert(notes).values({ ...note, profileId }).onConflictDoNothing().run().changes;
         }
         return { snapshot: getSnapshot(), summary };
       });

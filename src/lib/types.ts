@@ -15,8 +15,14 @@ export interface HabitInput {
   endHour: number; // exclusive, 1–24
   reviewHour: number; // hours before this belong to the first review
 }
+export interface Profile {
+  id: string;
+  name: string;
+  createdAt: string;
+}
 export interface Habit extends HabitInput {
   id: string;
+  profileId: string;
   archived: boolean;
   createdAt: string;
 }
@@ -31,10 +37,17 @@ export interface Note {
   helped: string;
   difficult: string;
 }
+export interface NoteRecord extends Note {
+  profileId: string;
+}
 export interface Snapshot {
   habits: Habit[];
   entries: Entry[];
-  notes: Note[];
+  notes: NoteRecord[];
+}
+export interface Workspace extends Snapshot {
+  profiles: Profile[];
+  activeProfile: Profile;
 }
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 export interface ImportPreview {

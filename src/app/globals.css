@@ -49,7 +49,8 @@ h1, h2, h3, h4, p { overflow-wrap: anywhere; }
 .app-header { background: white; border-bottom: 1px solid var(--line); }
 .header-inner { max-width: 1200px; padding: 22px 16px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .header-inner h1 { font-size: 25px; line-height: 1.2; font-weight: 700; letter-spacing: -.7px; }
-.workspace-label { font-size: 11px; color: var(--muted-foreground); background: var(--background); border: 1px solid var(--line); border-radius: 8px; padding: 5px 7px; white-space: nowrap; }
+.profile-controls { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.profile-select { width: min(32vw, 180px); padding: 8px 26px 8px 10px; background: var(--background); font-size: 14px; text-overflow: ellipsis; }
 .app-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; padding-bottom: env(safe-area-inset-bottom); background: #fffffffa; border-top: 1px solid var(--line); }
 .app-nav > div { display: flex; max-width: 1200px; margin: 0 auto; }
 .app-nav button { display: flex; flex: 1; flex-direction: column; gap: 4px; align-items: center; justify-content: center; min-height: 68px; color: var(--muted-foreground); font-size: 12px; border-top: 3px solid transparent; }
@@ -146,7 +147,6 @@ th { color: var(--muted-foreground); font-weight: 500; }
 @media (min-width: 768px) {
   .app-shell { padding-bottom: 0; }
   .header-inner { padding: 24px 32px; }
-  .workspace-label { font-size: 12px; }
   .app-nav { position: static; border-top: none; border-bottom: 1px solid var(--line); }
   .app-nav > div { padding: 0 24px; gap: 4px; }
   .app-nav button { flex: none; flex-direction: row; font-size: 14px; gap: 8px; min-height: 54px; padding: 0 18px; border-top: 0; border-bottom: 3px solid transparent; }
@@ -168,7 +168,9 @@ th { color: var(--muted-foreground); font-weight: 500; }
 }
 @media (max-width: 359px) {
   .header-inner h1 { font-size: 22px; }
-  .workspace-label { font-size: 10px; padding: 4px; }
+  .header-inner { gap: 8px; }
+  .profile-controls { gap: 4px; }
+  .profile-select { font-size: 13px; padding-inline: 7px 20px; }
   .card { padding: 14px; }
   .dialog-content { padding: 16px; }
   .button { padding-inline: 10px; font-size: 13px; }

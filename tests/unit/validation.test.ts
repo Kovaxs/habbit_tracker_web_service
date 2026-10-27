@@ -3,7 +3,7 @@ import type { Habit, HabitInput } from "@/lib/types";
 import { validDate, validateEntry, validateHabit, validateHabitUpdate, validateNote } from "@/server/validation";
 
 const input: HabitInput = { name: "Read", kind: "count", tracking: "hourly", direction: "increase", target: 10, unit: "pages", startDate: "2024-02-01", startHour: 8, endHour: 22, reviewHour: 14 };
-const habit: Habit = { ...input, id: "test", archived: false, createdAt: "2024-02-01T00:00:00Z" };
+const habit: Habit = { ...input, id: "test", profileId: "default", archived: false, createdAt: "2024-02-01T00:00:00Z" };
 
 describe("server validation", () => {
   it.each(["1900-01-01", "2000-02-29", "2024-02-29", "2100-12-31"])("accepts real date %s", date => expect(validDate(date)).toBe(date));

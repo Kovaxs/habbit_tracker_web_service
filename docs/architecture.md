@@ -27,13 +27,14 @@ Mark server modules with `import "server-only"`. Use `"use server"` for server-a
 
 ## Data model
 
-The schema is defined in `src/server/db/schema.ts` and applied by one reviewed migration in `drizzle/`:
+The schema is defined in `src/server/db/schema.ts` and applied by reviewed migrations in `drizzle/`:
 
-- `habits`: name (unique), kind (`count` or `completion`), tracking (`daily` or `hourly`), direction (`increase` or `decrease`), target, unit, start date, tracked hour range, review hour, archive flag, and creation time. Completion habits must have a target of 1 with an increase goal. Database checks keep these rules true for all rows.
-- `entries`: one row per recorded period, keyed by habit, date, and slot. A daily habit uses slot `-1`. An hourly habit uses the hour from 0 to 23. A value of `0` means "reviewed, with no occurrences". A missing row means "not reviewed". Blank cells never become zeroes.
-- `notes`: one row per date, with weekly helped and difficult text.
+- `profiles`: name (unique) and creation time. Profiles have no credentials and are not access controls.
+- `habits`: profile ID, name (unique within a profile), kind (`count` or `completion`), tracking (`daily` or `hourly`), direction (`increase` or `decrease`), target, unit, start date, tracked hour range, review hour, archive flag, and creation time. Completion habits must have a target of 1 with an increase goal. Database checks keep these rules true for all rows.
+- `entries`: one row per recorded period, keyed by habit, date, and slot. Habit ownership scopes entries to a profile. A daily habit uses slot `-1`. An hourly habit uses the hour from 0 to 23. A value of `0` means "reviewed, with no occurrences". A missing row means "not reviewed". Blank cells never become zeroes.
+- `notes`: one row per profile and date, with weekly helped and difficult text.
 
-Dates are `YYYY-MM-DD` strings in the workbook's local time. Hours are whole numbers. All writes go through one synchronous SQLite transaction per server action.
+Dates are `YYYY-MM-DD` strings in the workbook's local time. Hours are whole numbers. Record mutations use one synchronous SQLite transaction per server action.
 
 Imported habits must use hourly decrease counts with a full-day grid (00:00–24:00), because that is what the source workbook records. Progress plots must show recording coverage: an unrecorded period is not a successful period.
 
@@ -41,4 +42,6 @@ Imported habits must use hourly decrease counts with a full-day grid (00:00–24
 
 Use the Node.js runtime for SQLite. Do not use the Edge runtime for database routes. Database connections open on demand, not during the static home-page build. Database files live outside application source and public assets.
 
-Authentication and deployment are not implemented. Development and start scripts bind to localhost. Do not expose the app to an untrusted network before access controls are defined.
+The server resolves the active profile from an HTTP-only browser cookie. Each mutation also supplies the profile shown in its tab. The server rejects the mutation if that profile no longer matches the cookie. This prevents a stale tab from writing to another profile. The server then derives profile ownership from the cookie. Existing data migrates to the `Personal` profile with ID `default`.
+
+Authentication is not implemented. Development and start scripts bind to localhost. Do not expose the app to an untrusted network before access controls are defined.

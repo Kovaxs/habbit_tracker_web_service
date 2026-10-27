@@ -139,6 +139,62 @@ test("records, goals, notes and habits work and persist on a small screen", asyn
   expect(errors).toEqual([]);
 });
 
+test("profiles switch without passwords and isolate habits and notes", async ({ page }, testInfo) => {
+  const suffix = testInfo.project.name;
+  const name = `Shared habit ${suffix}`;
+  const profileName = `Alex ${suffix}`;
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  const profile = page.getByRole("combobox", { name: "Active profile" });
+  await expect(profile).toHaveValue("default");
+  await page.getByRole("button", { name: "Add habit", exact: true }).click();
+  let dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Habit name").fill(name);
+  await dialog.getByRole("button", { name: "Create habit", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await page.getByLabel("What helped?").fill(`Personal note ${suffix}`);
+  await page.getByRole("button", { name: "Save notes", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Save notes", exact: true })).toBeEnabled();
+  const stalePage = await page.context().newPage();
+  stalePage.on("pageerror", (error) => errors.push(error.message));
+  await stalePage.goto("/");
+  await expect(stalePage.getByRole("combobox", { name: "Active profile" })).toHaveValue("default");
+
+  await page.getByRole("button", { name: "Add profile", exact: true }).click();
+  dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Profile name").fill(profileName);
+  await dialog.getByRole("button", { name: "Create profile", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  const otherProfileId = await profile.locator("option", { hasText: profileName }).getAttribute("value");
+  expect(otherProfileId).toBeTruthy();
+  await expect(profile).toHaveValue(otherProfileId ?? "");
+  await expect(page.getByRole("article", { name, exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("What helped?")).toHaveValue("");
+  await page.getByRole("button", { name: "Add habit", exact: true }).click();
+  dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Habit name").fill(name);
+  await dialog.getByRole("button", { name: "Create habit", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("article", { name, exact: true })).toBeVisible();
+  await page.getByLabel("What helped?").fill(`Other note ${suffix}`);
+  await page.getByRole("button", { name: "Save notes", exact: true }).click();
+
+  await profile.selectOption("default");
+  await expect(page.getByLabel("What helped?")).toHaveValue(`Personal note ${suffix}`);
+  await profile.selectOption({ label: profileName });
+  await expect(page.getByLabel("What helped?")).toHaveValue(`Other note ${suffix}`);
+  await page.reload();
+  await expect(page.getByRole("combobox", { name: "Active profile" })).toHaveValue(otherProfileId ?? "");
+  await expect(page.getByLabel("What helped?")).toHaveValue(`Other note ${suffix}`);
+  await stalePage.getByLabel("What helped?").fill("This stale tab must not change another profile");
+  await stalePage.getByRole("button", { name: "Save notes", exact: true }).click();
+  await expect(stalePage.locator(".notice")).toContainText("The active profile changed in another tab. Reload this tab before saving.");
+  await expect(page.getByLabel("What helped?")).toHaveValue(`Other note ${suffix}`);
+  await stalePage.close();
+  expect(errors).toEqual([]);
+});
+
 test("workbook import previews, imports, stays idempotent and rejects bad layouts", async ({ page }, testInfo) => {
   const habitName = `Synthetic habit ${testInfo.project.name}`;
   const monday = mondays[testInfo.project.name] ?? "2025-01-13";
