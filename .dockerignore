@@ -1,0 +1,32 @@
+# Version control
+.git
+.jj
+
+# Dependencies and build output
+node_modules
+.next
+out
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Local data and environment. Never copy personal habit records into images.
+data
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+.env*
+
+# Tests and reports
+playwright-report
+test-results
+
+# Source workbook and docs not needed in the image
+Examen_particular_2026_reels.xlsx
+docs
+.superdesign
+.DS_Store
+npm-debug.log*

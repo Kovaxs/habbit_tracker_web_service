@@ -13,7 +13,7 @@ The core app is implemented and covered by automated tests:
 - Workbook import with a preview step. Blank cells stay unrecorded and existing data is never overwritten.
 - A responsive mobile-first interface tested on small screens.
 
-Authentication and deployment are not implemented. JSON restore is not available.
+Authentication is not implemented. JSON restore is not available. Container deployment is available.
 
 ## Local setup
 
@@ -124,16 +124,47 @@ The core dependencies are installed and used. Recharts draws the progress plots.
 
 Use server-side access for the database. Keep configuration in environment variables. Keep persistent data separate from application code.
 
+## Docker deployment
+
+The repo includes a multi-stage `Dockerfile`, a `.dockerignore`, and a `docker-compose.yml`. The image uses `output: "standalone"`, so it carries only the traced server files, static assets, and the `drizzle/` migrations. The build stage runs inside the container, so the Linux `better-sqlite3` native binary is included.
+
+### Build and run
+
+```sh
+docker compose up -d --build
+```
+
+The app then runs on `127.0.0.1:3000` on the Docker host.
+
+### Data storage
+
+The container writes the SQLite file to `/data/habit-tracker.sqlite` (`DATABASE_PATH`). Compose mounts the named volume `habit-tracker-data` at `/data`. The image creates `/data` with owner `node` (uid 1000). For a bind mount, set the host directory owner to uid 1000:
+
+```yaml
+volumes:
+  - ./data/docker:/data
+```
+
+Database files stay outside application code and outside the image. Do not publish habit records.
+
+### Environment
+
+| Variable        | Default                     | Purpose                                  |
+| --------------- | --------------------------- | ---------------------------------------- |
+| `DATABASE_PATH` | `/data/habit-tracker.sqlite`| SQLite file location inside the container |
+| `TZ`            | `UTC`                       | Time zone for record periods              |
+
+### Access and limits
+
+- The container binds port 3000. Compose publishes it on the host loopback only.
+- Migrations run automatically when the database opens.
+- The image runs as the non-root `node` user.
+- No health-check endpoint exists yet. Add one before use with orchestration probes.
+- Authentication is not implemented. Do not expose the service to an untrusted network.
+
 ## Deployment plan
 
-Deployment will be addressed after app development. The target is a Proxmox homelab.
-
-Two options remain open:
-
-1. Run the app as a Node.js service directly in a VM.
-2. Run the app in a container on a shared Docker VM with other services.
-
-Terraform is intended to provision infrastructure. Ansible is intended to configure the server and deploy the app. Docker is not a requirement at this stage.
+Deployment targets a Proxmox homelab. Docker deployment is now supported; direct Node.js deployment still works with `npm run build` and `npm start`.
 
 Use persistent local-disk storage for SQLite. Define backups, restore procedures, access controls, and remote access before deployment.
 
